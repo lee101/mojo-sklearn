@@ -110,6 +110,14 @@ Three rules hold throughout:
 - `PCA` pins component signs (largest-magnitude loading positive) so a refit
   does not flip them.
 
+## Related
+
+- [mojosub](https://github.com/lee101/mojosub) — Python subset → Mojo transpiler with a JIT
+- [mojo-arrow](https://github.com/lee101/mojo-arrow) — Arrow compute kernels
+- [mojo-plotly](https://github.com/lee101/mojo-plotly) — plotly figures with Mojo kernels
+- [mojo-notebook](https://github.com/lee101/mojo-notebook) — reactive Python + Mojo notebooks
+- [mojo-wasm](https://github.com/lee101/mojo-wasm) — compile Mojo to WebAssembly
+
 ## License
 
 MIT
