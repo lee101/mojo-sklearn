@@ -12,7 +12,9 @@ import numpy as np
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SRC = os.path.join(ROOT, "src")
-LIB = os.path.join(ROOT, "build", "capi.so")
+LIB = os.environ.get("MOJOSKLEARN_LIB") or os.path.join(
+    ROOT, "dist", "libmojo-sklearn.so"
+)
 
 I = ctypes.c_int64
 F = ctypes.c_double
@@ -73,7 +75,7 @@ def mojo_command() -> list[str]:
 
 
 def build(force: bool = False) -> str:
-    """Compile `src/capi.mojo` into `build/capi.so` if it is missing or stale."""
+    """Compile `src/capi.mojo` into `dist/libmojo-sklearn.so` if it is stale."""
     sources = [
         os.path.join(dirpath, name)
         for dirpath, _, names in os.walk(SRC)
