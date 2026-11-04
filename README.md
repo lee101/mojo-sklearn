@@ -50,8 +50,10 @@ lifting.
 | `KNN.predict` (5k train, 2k query, 20d) | 110 ms | 114 ms | 1.0x |
 | `PCA.fit` k=5 (100k x 30) | 27 ms | 27 ms | 1.0x |
 | `Ridge.fit` (200k x 20) | 147 ms | 73 ms | 0.5x slower |
-| `KMeans.fit` (3.7k x 120, k=6, n_init=4) | 15 ms | 13 ms | 0.8x (labels equal) |
-| `KMeans.fit` (300k x 12, k=6, n_init=2) | 626 ms | 470 ms | 0.7x (labels equal) |
+| `KMeans.fit` (3.7k x 120, k=6, n_init=4) | 14.8 ms | 12.8 ms | 0.9x (labels equal) |
+| `KMeans.fit` (8k x 20, k=10, n_init=4, 63 iters) | 59.9 ms | 67.1 ms | 1.1x (labels equal) |
+| `KMeans.fit` (300k x 12, k=6, n_init=2) | 615 ms | 503 ms | 0.8x (labels equal) |
+| `KMeans.fit` (20k x 16, k=12, n_init=3) | 12.1 ms | 281 ms | 23x (labels equal; scikit-learn's thread pool is slow on this shape; run `bench/kmeans_bench.py`) |
 
 `pixi run bench` reproduces it.
 
