@@ -40,6 +40,8 @@ _SIGNATURES = {
     "msk_kmeans_plusplus": ([I, I, I, I, I, I, I], None),
     "msk_kmeans_lloyd": ([I, I, I, I, I, I, I, I, I, F], F),
     "msk_kmeans_assign": ([I, I, I, I, I, I], F),
+    "msk_kmeans_fit_sk": ([I, I, I, I, I, I, F, I, I, I, I], None),
+    "msk_mt_sample": ([I, I, I], None),
     "msk_covariance": ([I, I, I, I, I, I], None),
     "msk_jacobi_eigh": ([I, I, I, I, F], I),
     "msk_pca_fit": ([I, I, I, I, I, I, I, I, I], F),

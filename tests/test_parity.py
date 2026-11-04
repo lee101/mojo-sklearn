@@ -83,15 +83,34 @@ def test_logistic_regression(classification):
     assert np.allclose(proba.sum(axis=1), 1.0)
 
 
-def test_kmeans(classification):
-    X, _ = classification
-    ours = msk.KMeans(n_clusters=2, random_state=0).fit(X)
-    theirs = sk_cluster.KMeans(n_clusters=2, n_init=10, random_state=0).fit(X)
-    assert ours.inertia_ == pytest.approx(theirs.inertia_, rel=1e-6)
-    # labels are arbitrary up to permutation; the partition must be the same
-    same = np.mean(ours.labels_ == theirs.labels_)
-    assert max(same, 1.0 - same) > 0.99
+def _blobs(n, d, k, spread, seed):
+    rng = np.random.default_rng(seed)
+    return rng.normal(size=(k, d))[rng.integers(0, k, n)] * 3 + rng.normal(size=(n, d)) * spread
+
+
+@pytest.mark.parametrize("n,d,k,n_init,seed,spread", [
+    (500, 2, 3, 1, 0, 1.0), (2000, 10, 8, 4, 0, 1.0), (3699, 120, 6, 4, 0, 3.0),
+    (6000, 8, 16, 3, 5, 2.5), (8000, 20, 10, 4, 0, 2.0),
+])
+def test_kmeans_matches_sklearn_exactly(n, d, k, n_init, seed, spread):
+    X = _blobs(n, d, k, spread, seed)
+    ours = msk.KMeans(n_clusters=k, n_init=n_init, random_state=seed).fit(X)
+    theirs = sk_cluster.KMeans(n_clusters=k, n_init=n_init, random_state=seed).fit(X)
+    assert np.array_equal(ours.labels_, theirs.labels_)
+    assert ours.n_iter_ == theirs.n_iter_
+    assert ours.inertia_ == pytest.approx(theirs.inertia_, rel=1e-12)
+    assert np.allclose(ours.cluster_centers_, theirs.cluster_centers_, rtol=0, atol=1e-10)
     assert np.array_equal(ours.predict(X), ours.labels_)
+
+
+def test_mt19937_stream_matches_numpy():
+    import ctypes
+    from mojosklearn._lib import lib, addr
+    lib().msk_mt_sample.argtypes = [ctypes.c_int64] * 3
+    for seed in (0, 1, 12345, 2**32 - 1):
+        o = np.empty(5000)
+        lib().msk_mt_sample(seed, addr(o), 5000)
+        assert np.array_equal(o, np.random.RandomState(seed).random_sample(5000))
 
 
 def test_pca(regression):

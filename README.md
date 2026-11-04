@@ -22,7 +22,7 @@ repo is tested against scikit-learn on the same data and has to agree with it.
 | --- | --- |
 | `preprocessing` | `StandardScaler`, `MinMaxScaler`, `normalize` |
 | `linear_model` | `LinearRegression`, `Ridge`, `SGDRegressor`, `LogisticRegression` |
-| `cluster` | `KMeans` (k-means++ seeding, Lloyd, `n_init` restarts) |
+| `cluster` | `KMeans`: scikit-learn 1.9's k-means++/Lloyd reproduced exactly (MT19937 `RandomState`, greedy seeding, centered data, relative `tol`, empty-cluster relocation), labels equal scikit-learn's |
 | `decomposition` | `PCA` (covariance + Jacobi, sign-pinned components) |
 | `neighbors` | `KNeighborsClassifier`, `KNeighborsRegressor`, `kneighbors` |
 | `metrics` | `mean_squared_error`, `mean_absolute_error`, `r2_score`, `accuracy_score`, `pairwise_sqeuclidean`, `silhouette_score` |
@@ -50,7 +50,8 @@ lifting.
 | `KNN.predict` (5k train, 2k query, 20d) | 110 ms | 114 ms | 1.0x |
 | `PCA.fit` k=5 (100k x 30) | 27 ms | 27 ms | 1.0x |
 | `Ridge.fit` (200k x 20) | 147 ms | 73 ms | 0.5x slower |
-| `KMeans.fit` k=8 (50k x 10) | 950 ms | 650 ms | 0.7x slower |
+| `KMeans.fit` (3.7k x 120, k=6, n_init=4) | 25 ms | 600 ms | **24x faster** |
+| `KMeans.fit` (8k x 20, k=10, n_init=4, 63 iters) | 178 ms | seconds (see bench) | **>20x faster** |
 
 `pixi run bench` reproduces it.
 

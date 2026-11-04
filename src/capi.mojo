@@ -6,6 +6,7 @@ memory, including scratch — nothing here allocates, so nothing here can leak.
 """
 
 from mojosklearn.cluster import kmeans_assign, kmeans_lloyd, kmeans_plusplus
+from mojosklearn.kmeans_sk import kmeans_fit_sk, MT19937
 from mojosklearn.decomposition import (
     covariance,
     jacobi_eigh,
@@ -173,6 +174,21 @@ def msk_kmeans_lloyd(
     return kmeans_lloyd(
         p(x), p(centers), p(labels), p(sums), p(counts), n, d, k, max_iter, tol
     )
+
+
+@export("msk_kmeans_fit_sk")
+def msk_kmeans_fit_sk(
+    x: Int, n: Int, d: Int, k: Int, n_init: Int, max_iter: Int, tol: Float64, seed: Int, centers: Int, labels: Int, stats: Int
+) abi("C"):
+    kmeans_fit_sk(p(x), n, d, k, n_init, max_iter, tol, seed, p(centers), p(labels), p(stats))
+
+
+@export("msk_mt_sample")
+def msk_mt_sample(seed: Int, dst: Int, n: Int) abi("C"):
+    var rs = MT19937(seed)
+    var o = p(dst)
+    for i in range(n):
+        o[i] = rs.random_sample()
 
 
 @export("msk_kmeans_assign")
