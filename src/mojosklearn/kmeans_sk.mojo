@@ -165,17 +165,50 @@ def kmeans_pp_sk(x: Ptr, xn: List[Float64], centers: Ptr, n: Int, d: Int, k: Int
             centers[c * d + j] = x[cand[best_t] * d + j]
 
 
-def assign_rows(x: Ptr, centers: Ptr, half: List[Float64], mut labels: List[Int32], n: Int, d: Int, k: Int):
+def _assign_block[KW: Int](x: Ptr, ct: Ptr, hp: Ptr, kp: Int, best: Ptr, mut bidx: List[Int32], n: Int, d: Int, c0: Int):
     for i in range(n):
         var xi = x + i * d
-        var bj = 0
-        var bd = half[0] - dot2(xi, centers, d)
-        for j in range(1, k):
-            var v = half[j] - dot2(xi, centers + j * d, d)
-            if v < bd:
-                bd = v
-                bj = j
-        labels[i] = Int32(bj)
+        var acc = SIMD[DType.float64, KW](0.0)
+        for j in range(d):
+            acc += SIMD[DType.float64, KW](xi[j]) * (ct + j * kp + c0).load[width=KW](0)
+        var v = hp.load[width=KW](c0) - acc
+        var bd = best[i]
+        var bj = bidx[i]
+        comptime for l in range(KW):
+            if v[l] < bd:
+                bd = v[l]
+                bj = Int32(c0 + l)
+        best[i] = bd
+        bidx[i] = bj
+
+
+def assign_rows(x: Ptr, centers: Ptr, half: List[Float64], mut labels: List[Int32], n: Int, d: Int, k: Int):
+    """Nearest center by argmin(0.5|c|^2 - x.c). Centers are transposed into [d][kp] so one broadcast x[i, j] feeds a whole SIMD row
+    of centers (KW = 4 / 8 / 16 / 32 lanes by k); ties resolve to the lowest index."""
+    var kw = 4 if k <= 4 else (8 if k <= 8 else (16 if k <= 16 else 32))
+    var kp = ((k + kw - 1) // kw) * kw
+    var ct = List[Float64](length=d * kp, fill=0.0)
+    for c in range(k):
+        for j in range(d):
+            ct[j * kp + c] = centers[c * d + j]
+    var hp = List[Float64](length=kp, fill=1e300)
+    for c in range(k):
+        hp[c] = half[c]
+    var best = List[Float64](length=n, fill=1e300)
+    var bidx = List[Int32](length=n, fill=0)
+    var c0 = 0
+    while c0 < kp:
+        if kw == 4:
+            _assign_block[4](x, pptr(ct), pptr(hp), kp, pptr(best), bidx, n, d, c0)
+        elif kw == 8:
+            _assign_block[8](x, pptr(ct), pptr(hp), kp, pptr(best), bidx, n, d, c0)
+        elif kw == 16:
+            _assign_block[16](x, pptr(ct), pptr(hp), kp, pptr(best), bidx, n, d, c0)
+        else:
+            _assign_block[32](x, pptr(ct), pptr(hp), kp, pptr(best), bidx, n, d, c0)
+        c0 += kw
+    for i in range(n):
+        labels[i] = bidx[i]
 
 
 def lloyd_sk(
