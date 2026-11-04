@@ -50,8 +50,8 @@ lifting.
 | `KNN.predict` (5k train, 2k query, 20d) | 110 ms | 114 ms | 1.0x |
 | `PCA.fit` k=5 (100k x 30) | 27 ms | 27 ms | 1.0x |
 | `Ridge.fit` (200k x 20) | 147 ms | 73 ms | 0.5x slower |
-| `KMeans.fit` (3.7k x 120, k=6, n_init=4) | 25 ms | 600 ms | **24x faster** |
-| `KMeans.fit` (8k x 20, k=10, n_init=4, 63 iters) | 178 ms | seconds (see bench) | **>20x faster** |
+| `KMeans.fit` (3.7k x 120, k=6, n_init=4) | 15 ms | 13 ms | 0.8x (labels equal) |
+| `KMeans.fit` (300k x 12, k=6, n_init=2) | 626 ms | 470 ms | 0.7x (labels equal) |
 
 `pixi run bench` reproduces it.
 
